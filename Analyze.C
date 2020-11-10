@@ -5,6 +5,10 @@
 // framework see $ROOTSYS/README/README.SELECTOR or the ROOT User Manual.
 
 
+//### Compilação: 
+// TFile *f = new TFile("experiment.root")
+//tree1->Process("Analyze.C")
+
 // The following methods are defined in this file:
 //    Begin():        called every time a loop on the tree starts,
 //                    a convenient place to create your histograms.
@@ -41,20 +45,24 @@ void Analyze::Begin(TTree * /*tree*/)
 
    TString option = GetOption();
 
+//###### Arquivo onde está sendo salvo todos os histogramas ######
    TFile *f = new TFile("histograms_cpp.root","RECREATE");
 
 
-   //chi2Hist = new TH1D("chi2","Histogram of Chi2",100,0,20);
-   //chi2Hist->GetXaxis()->SetTitle("chi2");
-   //chi2Hist->GetYaxis()->SetTitle("number of events");
-  
+//####### Histogram chi2 ###########
+  chi2Hist = new TH1D("chi2","Histogram of Chi2",100,0,20);
+  chi2Hist->GetXaxis()->SetTitle("chi2");
+  chi2Hist->GetYaxis()->SetTitle("number of events");
+ 
+//####### Histogram ebeam #########
   ebeamHist = new TH1D("ebeamHist", "Histogram of ebeam",100,0,200); 
   ebeamHist->GetXaxis()->SetTitle("ebeam");
   ebeamHist->GetYaxis()->SetTitle("number of events");
  
-  //scattHist = new TH2F("scattHist", "Scatterplot Chi2 x ebeam",100,0,20,0,200);
-  //scattHist->GetXaxis()->SetTitle("chi2");
-  //scattHist->GetYaxis()->SetTitle("ebeam");
+//###### Scatterplot chi2 x ebeam  
+  scattHist = new TH2F("scattHist", "Scatterplot chi2 x ebeam",100,149.0,151.0,100,0,20);
+  scattHist->GetYaxis()->SetTitle("chi2");
+  scattHist->GetXaxis()->SetTitle("ebeam");
 }
 
 void Analyze::SlaveBegin(TTree * /*tree*/)
@@ -88,9 +96,9 @@ Bool_t Analyze::Process(Long64_t entry)
    fReader.SetLocalEntry(entry);
 
    GetEntry(entry);
-   //chi2Hist->Fill(*chi2);
+   chi2Hist->Fill(*chi2);
    ebeamHist->Fill(*ebeam);
-   //scattHist->Fill(*chi2,*ebeam);
+   scattHist->Fill(*ebeam,*chi2);
 
    return kTRUE;
 }
@@ -110,8 +118,8 @@ void Analyze::Terminate()
    // the results graphically or save the results to file.
 
   //chi2Hist->Draw("E2");
-  ebeamHist->Fit("gaus");
-  ebeamHist->Draw();
-  //scattHist->Draw(); 
+  //ebeamHist->Fit("gaus");
+  //ebeamHist->Draw();
+  scattHist->Draw(); 
  f->Write();
 }
