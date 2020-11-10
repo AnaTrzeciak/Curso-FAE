@@ -36,13 +36,12 @@
 TH1* chi2Hist = NULL;
 TH1* ebeamHist = NULL;
 TH2* scattHist = NULL;
-
+TH1* ptHist = NULL;
+TH1* thetaHist = NULL;
+Int_t cont =0;  //contando o numero de eventos com pz < 145.0 GeV
 void Analyze::Begin(TTree * /*tree*/)
 {
-   // The Begin() function is called at the start of the query.
-   // When running with PROOF Begin() is only called on the client.
-   // The tree argument is deprecated (on PROOF 0 is passed).
-
+   
    TString option = GetOption();
 
 //###### Arquivo onde está sendo salvo todos os histogramas ######
@@ -50,19 +49,31 @@ void Analyze::Begin(TTree * /*tree*/)
 
 
 //####### Histogram chi2 ###########
-  chi2Hist = new TH1D("chi2","Histogram of Chi2",100,0,20);
+  chi2Hist = new TH1D("chi2","Histogram of Chi2",100,0,2);
   chi2Hist->GetXaxis()->SetTitle("chi2");
   chi2Hist->GetYaxis()->SetTitle("number of events");
  
 //####### Histogram ebeam #########
-  ebeamHist = new TH1D("ebeamHist", "Histogram of ebeam",100,0,200); 
+  ebeamHist = new TH1D("ebeamHist", "Histogram of ebeam",100,149.0,151.0); 
   ebeamHist->GetXaxis()->SetTitle("ebeam");
   ebeamHist->GetYaxis()->SetTitle("number of events");
  
 //###### Scatterplot chi2 x ebeam  
-  scattHist = new TH2F("scattHist", "Scatterplot chi2 x ebeam",100,149.0,151.0,100,0,20);
+  scattHist = new TH2F("scattHist", "Scatterplot chi2 x ebeam",100,149.0,151.0,100,0,2);
   scattHist->GetYaxis()->SetTitle("chi2");
   scattHist->GetXaxis()->SetTitle("ebeam");
+
+
+//###### Histogram pt variable: pt = sqrt(px*px+py*py) ###########
+  ptHist = new TH1D("pt","Histogram of pt",100,0,35);
+  ptHist->GetXaxis()->SetTitle("pt (GeV)");
+  ptHist->GetYaxis()->SetTitle("Number of Events");
+
+//#### Histogram of theta: theta = artg(pt/pz) ###############
+  thetaHist = new TH1D("theta", "Histogram of theta", 100, -0.4, 0.4);
+  thetaHist->GetXaxis()->SetTitle("theta");
+  thetaHist->GetYaxis()->SetTitle("Number of Events");
+
 }
 
 void Analyze::SlaveBegin(TTree * /*tree*/)
@@ -77,29 +88,37 @@ void Analyze::SlaveBegin(TTree * /*tree*/)
 
 Bool_t Analyze::Process(Long64_t entry)
 {
-   // The Process() function is called for each entry in the tree (or possibly
-   // keyed object in the case of PROOF) to be processed. The entry argument
-   // specifies which entry in the currently loaded tree is to be processed.
-   // When processing keyed objects with PROOF, the object is already loaded
-   // and is available via the fObject pointer.
-   //
-   // This function should contain the \"body\" of the analysis. It can contain
-   // simple or elaborate selection criteria, run algorithms on the data
-   // of the event and typically fill histograms.
-   //
-   // The processing can be stopped by calling Abort().
-   //
-   // Use fStatus to set the return value of TTree::Process().
-   //
-   // The return value is currently not used.
-
+   
    fReader.SetLocalEntry(entry);
 
    GetEntry(entry);
+ //Fill histogram of Chi2
    chi2Hist->Fill(*chi2);
+
+ //Fill histogram of ebeam
    ebeamHist->Fill(*ebeam);
+
+ //Fill scatterplot 
    scattHist->Fill(*ebeam,*chi2);
 
+ //Fill histogram of pt
+   Double_t pt;
+   pt = TMath::Sqrt((*px)*(*px)+(*py)*(*py));
+   ptHist->Fill(pt);
+
+ //Fill histogram of theta
+   Double_t theta;
+   theta = TMath::ATan2((pt),(*pz));
+   thetaHist->Fill(theta);
+
+ //Cut: pz < 145 GeV
+
+ 
+ if(*pz < 145.0){
+  //std:: cout << *pz << endl;
+  cont++;
+ } 
+ 
    return kTRUE;
 }
 
@@ -113,13 +132,21 @@ void Analyze::SlaveTerminate()
 
 void Analyze::Terminate()
 {
-   // The Terminate() function is the last function to be called during
-   // a query. It always runs on the client, it can be used to present
-   // the results graphically or save the results to file.
-
-  //chi2Hist->Draw("E2");
+   
+  //chi2Hist->Draw("E");
   //ebeamHist->Fit("gaus");
-  //ebeamHist->Draw();
-  scattHist->Draw(); 
- f->Write();
+  //ebeamHist->Draw("E");
+  //scattHist->Draw();
+  //ptHist->Draw();
+  //thetaHist->Draw();
+ 
+ std:: cout << "Number of events with  pz is less than 145 GeV: " << cont << endl; 
+ 
+  chi2Hist->Write();
+  ebeamHist->Write();
+  scattHist->Write();
+  ptHist->Write();
+  thetaHist->Write();
+  f->Write();
+  f->Close();
 }

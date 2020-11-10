@@ -1,2 +1,2 @@
 # Curso-FAE
-arquivos relacionados à disciplina de Análise de dados Computacional
+Arquivos relacionados à disciplina de Análise de dados Computacional. Contém os exercícios resolvidos.
