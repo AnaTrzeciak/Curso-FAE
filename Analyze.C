@@ -133,9 +133,9 @@ void Analyze::SlaveTerminate()
 void Analyze::Terminate()
 {
    
-  //chi2Hist->Draw("E");
-  //ebeamHist->Fit("gaus");
-  //ebeamHist->Draw("E");
+  //chi2Hist->Draw("E1");
+ // ebeamHist->Fit("gaus");
+  //ebeamHist->Draw("E1");
   //scattHist->Draw();
   //ptHist->Draw();
   //thetaHist->Draw();
